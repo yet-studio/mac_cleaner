@@ -68,6 +68,54 @@ class FileCleaner:
 
         return results
 
+    def _get_file_preview(self, file_path: Path) -> Dict[str, Any]:
+        """Get preview information for a single file.
+        
+        Args:
+            file_path: Path to the file
+            
+        Returns:
+            Dictionary containing file preview information
+        """
+        result = {'path': str(file_path)}
+        
+        try:
+            if not file_path.exists():
+                result['error'] = 'File does not exist'
+                return result
+            
+            # Get file size
+            result['size'] = file_path.stat().st_size
+            
+            # Read first 100 characters of the file
+            try:
+                with open(file_path, 'r') as f:
+                    result['content_preview'] = f.read(100)
+            except UnicodeDecodeError:
+                result['content_preview'] = '<binary file>'
+                
+        except PermissionError:
+            result['error'] = 'Permission denied'
+        except Exception as e:
+            result['error'] = str(e)
+            
+        return result
+
+    def preview_files(self, files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Preview files before cleaning them.
+        
+        Args:
+            files: List of dictionaries containing file paths
+            
+        Returns:
+            List of dictionaries containing file information and previews
+        """
+        if not isinstance(files, list):
+            raise ValueError("Files must be provided as a list")
+            
+        return [self._get_file_preview(Path(file_info['path'])) 
+                for file_info in files]
+
     def estimate_space_saving(self, files: List[Dict]) -> int:
         """Estimate space that would be freed by cleaning files"""
         return sum(file.get('size', 0) for file in files)
