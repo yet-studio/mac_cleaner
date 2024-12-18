@@ -150,3 +150,51 @@ def test_preview_binary_file(cleaner, tmp_path):
     assert preview[0]['path'] == str(test_file)
     assert preview[0]['size'] == 4
     assert preview[0]['content_preview'] == '<binary file>'
+
+def test_get_system_paths():
+    """Test getting system paths from config"""
+    from src.core.cleaner import get_system_paths
+    
+    paths = get_system_paths()
+    assert isinstance(paths, dict)
+    assert 'cache' in paths
+    assert 'logs' in paths
+    assert 'containers' in paths
+    assert all(isinstance(path, str) for category in paths.values() for path in category)
+
+def test_get_system_paths_by_category():
+    """Test getting system paths by category"""
+    from src.core.cleaner import get_system_paths
+    
+    paths = get_system_paths(category='cache')
+    assert isinstance(paths, list)
+    assert '/Users/popdev/Library/Caches' in paths
+    assert '/Library/Caches' in paths
+
+def test_get_system_paths_with_exists_check():
+    """Test getting system paths with existence check"""
+    from src.core.cleaner import get_system_paths
+    
+    paths = get_system_paths(check_exists=True)
+    # All returned paths should exist
+    assert all(Path(path).exists() for category in paths.values() for path in category)
+
+def test_get_system_paths_with_size():
+    """Test getting system paths with size information"""
+    from src.core.cleaner import get_system_paths
+    
+    paths = get_system_paths(with_size=True)
+    for category, path_list in paths.items():
+        for path_info in path_list:
+            assert isinstance(path_info, dict)
+            assert 'path' in path_info
+            assert 'size' in path_info
+            if Path(path_info['path']).exists():
+                assert path_info['size'] >= 0
+
+def test_get_system_paths_invalid_category():
+    """Test getting system paths with invalid category"""
+    from src.core.cleaner import get_system_paths
+    
+    with pytest.raises(ValueError):
+        get_system_paths(category='invalid')

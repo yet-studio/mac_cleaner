@@ -1,0 +1,29 @@
+{
+    "cleanup_paths": {
+        "cache": [
+            "/Users/popdev/Library/Caches",
+            "/Library/Caches"
+        ],
+        "containers": [
+            "/Users/popdev/Library/Containers"
+        ],
+        "application_state": [
+            "/Users/popdev/Library/Saved Application State"
+        ],
+        "temp": [
+            "/private/tmp"
+        ],
+        "logs": [
+            "/Users/popdev/Library/Logs",
+            "/usr/local/var/log",
+            "/private/var/log",
+            "/Users/popdev/Library/Logs",
+            "/private/var/logs"
+        ]
+    },
+    "metadata": {
+        "description": "System paths for Mac Cleaner",
+        "version": "1.0.0",
+        "last_updated": "2024-12-18"
+    }
+}

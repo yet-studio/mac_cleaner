@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import List, Dict, Optional, Union, Any
 import logging
 import os
+import json
 
 class FileCleaner:
     """Cleaner for removing files"""
@@ -119,3 +120,50 @@ class FileCleaner:
     def estimate_space_saving(self, files: List[Dict]) -> int:
         """Estimate space that would be freed by cleaning files"""
         return sum(file.get('size', 0) for file in files)
+
+def get_system_paths(category: Optional[str] = None, check_exists: bool = False, with_size: bool = False) -> Union[Dict[str, List[Union[str, Dict[str, Any]]]], List[Union[str, Dict[str, Any]]]]:
+    """Get system paths for cleaning from configuration.
+    
+    Args:
+        category: Optional category to filter paths
+        check_exists: Only return paths that exist
+        with_size: Include size information for each path
+        
+    Returns:
+        Dictionary of paths by category or list of paths if category is specified
+    """
+    config_path = Path(__file__).parent.parent.parent / 'config' / 'system_paths.json'
+    
+    with open(config_path, 'r') as f:
+        config = json.load(f)
+    
+    paths = config['cleanup_paths']
+    
+    if category:
+        if category not in paths:
+            raise ValueError(f"Invalid category: {category}")
+        paths = paths[category]
+    
+    def process_path(path: str) -> Union[str, Dict[str, Any]]:
+        path_obj = Path(path)
+        if check_exists and not path_obj.exists():
+            return None
+        
+        if with_size:
+            try:
+                size = sum(f.stat().st_size for f in path_obj.rglob('*') if f.is_file())
+            except (PermissionError, FileNotFoundError):
+                size = 0
+            return {'path': path, 'size': size}
+        return path
+    
+    if category:
+        processed = [process_path(p) for p in paths]
+        return [p for p in processed if p is not None]
+    
+    result = {}
+    for cat, path_list in paths.items():
+        processed = [process_path(p) for p in path_list]
+        result[cat] = [p for p in processed if p is not None]
+    
+    return result

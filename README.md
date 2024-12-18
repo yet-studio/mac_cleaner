@@ -5,6 +5,13 @@ A powerful and safe system cleaning tool for macOS with backup and restore capab
 ## Features
 
 - **Smart Cleaning**: Identifies and removes temporary files and logs
+- **System Paths**: Pre-configured paths for common system cleanup locations:
+  - Cache files (`~/Library/Caches`, `/Library/Caches`)
+  - Container files (`~/Library/Containers`)
+  - Application state (`~/Library/Saved Application State`)
+  - Temporary files (`/private/tmp`)
+  - Log files (`~/Library/Logs`, `/var/log`, etc.)
+- **File Preview**: Preview file contents before deletion
 - **Backup System**: Creates backups before any deletion
 - **Undo Support**: Restore deleted files if needed
 - **Cleaning History**: Tracks all cleaning operations
@@ -57,10 +64,32 @@ pip install -e .
 python main.py
 ```
 
-2. **View Cleaning History**:
+2. **Preview Files Before Cleaning**:
+```python
+from src.core.cleaner import FileCleaner
+
+cleaner = FileCleaner()
+preview = cleaner.preview_files([{'path': '/path/to/file'}])
+```
+
+3. **Clean System Paths**:
+```python
+from src.core.cleaner import get_system_paths
+
+# Get all system paths
+paths = get_system_paths()
+
+# Get paths by category (cache, logs, etc.)
+cache_paths = get_system_paths(category='cache')
+
+# Get paths with size information
+paths_with_size = get_system_paths(with_size=True)
+```
+
+4. **View Cleaning History**:
 - Select option 2 from the main menu
 
-3. **Restore Files**:
+5. **Restore Files**:
 - Select option 3 from the main menu
 - Choose the backup to restore from
 
@@ -80,6 +109,30 @@ python main.py
    - Multiple backup points
    - Full or selective restoration
    - Backup browsing and selection
+
+## Configuration
+
+### System Paths
+
+System cleanup paths are configured in `config/system_paths.json`. The paths are organized by categories:
+
+```json
+{
+    "cleanup_paths": {
+        "cache": [
+            "/Users/[user]/Library/Caches",
+            "/Library/Caches"
+        ],
+        "logs": [
+            "/Users/[user]/Library/Logs",
+            "/var/log"
+        ],
+        ...
+    }
+}
+```
+
+You can customize these paths by editing the configuration file.
 
 ## Development
 
