@@ -1,93 +1,73 @@
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union, Any
 import logging
-import shutil
-from datetime import datetime
+import os
 
 class FileCleaner:
-    """Core cleaner functionality"""
+    """Cleaner for removing files"""
     
     def __init__(self, backup_manager=None, history_manager=None):
         self.backup_manager = backup_manager
         self.history_manager = history_manager
         self.logger = logging.getLogger(__name__)
     
-    def clean_files(self, files: List[Dict], backup: bool = True) -> Dict:
+    def clean_files(self, files: List[Dict], backup: bool = False) -> Dict:
         """Clean files with optional backup"""
-        results = {
-            'cleaned': [],
-            'failed': [],
-            'total_size': 0,
-            'backup_id': None
-        }
+        if not isinstance(files, list):
+            raise ValueError("Files must be a list")
         
-        # Create backup if requested
-        if backup and self.backup_manager and files:
+        results = {'cleaned': [], 'failed': []}
+        
+        for file_info in files:
             try:
-                backup_id = self.backup_manager.create_backup(
-                    [file['path'] for file in files]
-                )
-                results['backup_id'] = backup_id
+                file_path = Path(file_info['path'])
+                if not file_path.exists():
+                    results['failed'].append({**file_info, 'error': 'File does not exist'})
+                    continue
+                    
+                file_path.unlink()
+                results['cleaned'].append(file_info)
+                
             except Exception as e:
-                self.logger.error(f"Backup failed: {e}")
-                return results
-        
-        # Clean files
-        for file in files:
-            try:
-                path = Path(file['path'])
-                if path.exists():
-                    path.unlink()
-                    results['cleaned'].append(file)
-                    results['total_size'] += file['size']
-            except Exception as e:
-                self.logger.error(f"Failed to clean {file['path']}: {e}")
-                results['failed'].append({
-                    'file': file,
-                    'error': str(e)
-                })
-        
-        # Log operation
-        if self.history_manager:
-            self._log_operation(results)
-        
+                results['failed'].append({**file_info, 'error': str(e)})
+                
         return results
     
-    def clean_by_type(self, scan_results: Dict[str, List[Dict]], 
-                      types: Optional[List[str]] = None) -> Dict:
-        """Clean files by type"""
-        if types is None:
-            types = list(scan_results.keys())
-        
-        files_to_clean = []
-        for file_type in types:
-            if file_type in scan_results:
-                files_to_clean.extend(scan_results[file_type])
-        
-        return self.clean_files(files_to_clean)
-    
-    def _log_operation(self, results: Dict):
-        """Log cleaning operation"""
-        operation = {
-            'timestamp': datetime.now().isoformat(),
-            'cleaned_count': len(results['cleaned']),
-            'failed_count': len(results['failed']),
-            'total_size': results['total_size'],
-            'backup_id': results['backup_id']
-        }
-        
+    def clean_by_pattern(self, directory: Union[str, Path], patterns: List[str]) -> Dict[str, List[Dict[str, Any]]]:
+        """Clean files matching the given patterns in the directory."""
+        results = {'cleaned': [], 'failed': []}
         try:
-            self.history_manager.add_entry(operation)
+            directory = Path(directory)
+            if not directory.exists():
+                results['failed'].append({'path': str(directory), 'error': 'Directory does not exist'})
+                return results
+
+            for root, _, files in os.walk(str(directory)):
+                for file_name in files:
+                    if any(file_name.endswith(pattern.lstrip('*')) for pattern in patterns):
+                        file_path = Path(root) / file_name
+                        try:
+                            file_size = file_path.stat().st_size
+                            file_path.unlink()
+                            results['cleaned'].append({
+                                'path': str(file_path),
+                                'size': file_size
+                            })
+                        except Exception as e:
+                            results['failed'].append({
+                                'path': str(file_path),
+                                'error': str(e)
+                            })
+
         except Exception as e:
-            self.logger.error(f"Failed to log operation: {e}")
-    
+            self.logger.error(f"Error in clean_by_pattern: {e}")
+            results['failed'].append({
+                'path': str(directory),
+                'error': str(e)
+            })
+
+        return results
+
     def estimate_space_saving(self, files: List[Dict]) -> int:
-        """Estimate space that would be freed"""
-        return sum(file['size'] for file in files)
-    
-    def verify_cleaning(self, results: Dict) -> bool:
-        """Verify cleaning operation"""
-        for file in results['cleaned']:
-            if Path(file['path']).exists():
-                return False
-        return True
+        """Estimate space that would be freed by cleaning files"""
+        return sum(file.get('size', 0) for file in files)

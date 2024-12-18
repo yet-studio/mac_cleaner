@@ -1,0 +1,32 @@
+{
+    "locations": {
+        "temp": [
+            "~/Library/Caches",
+            "/tmp",
+            "/var/tmp"
+        ],
+        "logs": [
+            "~/Library/Logs",
+            "/var/log"
+        ],
+        "cache": [
+            "~/Library/Caches",
+            "~/Library/Application Support/*/Cache"
+        ]
+    },
+    "patterns": {
+        "temp": [
+            "*.tmp",
+            "*.temp",
+            "Temp*"
+        ],
+        "logs": [
+            "*.log",
+            "*.txt"
+        ],
+        "cache": [
+            "Cache*",
+            "*.cache"
+        ]
+    }
+}

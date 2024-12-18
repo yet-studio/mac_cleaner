@@ -51,59 +51,48 @@ class DatabaseHandler:
     def save_data(self, data: Dict) -> bool:
         """Save data to database"""
         try:
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.db_path, 'w') as f:
                 json.dump(data, f, indent=4)
             return True
         except Exception as e:
-            self.logger.error(f"Error saving to database: {e}")
+            self.logger.error(f"Error saving database: {e}")
             return False
     
-    def get_locations(self, location_type: Optional[str] = None) -> Dict[str, List[str]]:
+    def get_locations(self) -> Dict[str, List[str]]:
         """Get cleaning locations"""
         data = self.load_data()
-        if not data:
-            return {}
-        
-        locations = data.get('locations', {})
-        if location_type:
-            return {location_type: locations.get(location_type, [])}
-        return locations
+        return data.get('locations', {}) if data else {}
     
-    def get_patterns(self, pattern_type: Optional[str] = None) -> Dict[str, List[str]]:
+    def get_patterns(self) -> Dict[str, List[str]]:
         """Get cleaning patterns"""
         data = self.load_data()
-        if not data:
-            return {}
-        
-        patterns = data.get('patterns', {})
-        if pattern_type:
-            return {pattern_type: patterns.get(pattern_type, [])}
-        return patterns
+        return data.get('patterns', {}) if data else {}
     
-    def add_location(self, location_type: str, path: str) -> bool:
-        """Add new location to database"""
+    def add_location(self, category: str, path: str) -> bool:
+        """Add new cleaning location"""
         data = self.load_data()
         if not data:
             return False
         
-        if location_type not in data['locations']:
-            data['locations'][location_type] = []
+        if category not in data['locations']:
+            data['locations'][category] = []
         
-        if path not in data['locations'][location_type]:
-            data['locations'][location_type].append(path)
+        if path not in data['locations'][category]:
+            data['locations'][category].append(path)
             return self.save_data(data)
         return True
     
-    def add_pattern(self, pattern_type: str, pattern: str) -> bool:
-        """Add new pattern to database"""
+    def add_pattern(self, category: str, pattern: str) -> bool:
+        """Add new cleaning pattern"""
         data = self.load_data()
         if not data:
             return False
         
-        if pattern_type not in data['patterns']:
-            data['patterns'][pattern_type] = []
+        if category not in data['patterns']:
+            data['patterns'][category] = []
         
-        if pattern not in data['patterns'][pattern_type]:
-            data['patterns'][pattern_type].append(pattern)
+        if pattern not in data['patterns'][category]:
+            data['patterns'][category].append(pattern)
             return self.save_data(data)
         return True
