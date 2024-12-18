@@ -24,7 +24,7 @@ def test_clean_files_nonexistent(cleaner):
     results = cleaner.clean_files(files)
     
     assert len(results['failed']) == 1
-    assert 'does not exist' in results['failed'][0]['error']
+    assert 'No such file or directory' in results['failed'][0]['error']
 
 def test_clean_files_invalid_input(cleaner):
     """Test clean_files with invalid input"""
@@ -37,7 +37,7 @@ def test_clean_files_error(cleaner, tmp_path):
     test_file.touch()
     
     files = [{'path': str(test_file)}]
-    with patch('pathlib.Path.unlink', side_effect=Exception('Test error')):
+    with patch('os.remove', side_effect=Exception('Test error')):
         results = cleaner.clean_files(files)
         assert len(results['failed']) == 1
         assert 'Test error' in results['failed'][0]['error']
@@ -198,3 +198,84 @@ def test_get_system_paths_invalid_category():
     
     with pytest.raises(ValueError):
         get_system_paths(category='invalid')
+
+def test_clean_directory(tmp_path):
+    """Test cleaning an entire directory"""
+    # Create a test directory with some files
+    test_dir = tmp_path / "test_dir"
+    test_dir.mkdir()
+    (test_dir / "file1.txt").write_text("test1")
+    (test_dir / "file2.txt").write_text("test2")
+    
+    cleaner = FileCleaner()
+    result = cleaner.clean_files([{'path': str(test_dir)}])
+    
+    assert not test_dir.exists()
+    assert len(result['cleaned']) == 1
+    assert len(result['failed']) == 0
+
+def test_clean_directory_with_subdirs(tmp_path):
+    """Test cleaning a directory with subdirectories"""
+    # Create a test directory structure
+    test_dir = tmp_path / "test_dir"
+    test_dir.mkdir()
+    (test_dir / "file1.txt").write_text("test1")
+    subdir = test_dir / "subdir"
+    subdir.mkdir()
+    (subdir / "file2.txt").write_text("test2")
+    
+    cleaner = FileCleaner()
+    result = cleaner.clean_files([{'path': str(test_dir)}])
+    
+    assert not test_dir.exists()
+    assert len(result['cleaned']) == 1
+    assert len(result['failed']) == 0
+
+def test_clean_directory_permission_error(tmp_path):
+    """Test cleaning a directory with insufficient permissions"""
+    import os
+    import stat
+    
+    # Create a test directory with restricted permissions
+    test_dir = tmp_path / "test_dir"
+    test_dir.mkdir()
+    (test_dir / "file1.txt").write_text("test1")
+    
+    # Remove write permissions
+    os.chmod(str(test_dir), stat.S_IRUSR | stat.S_IXUSR)
+    
+    cleaner = FileCleaner()
+    result = cleaner.clean_files([{'path': str(test_dir)}])
+    
+    assert test_dir.exists()
+    assert len(result['cleaned']) == 0
+    assert len(result['failed']) == 1
+    assert "Operation not permitted" in result['failed'][0]['error']
+
+def test_clean_directory_with_readonly_files(tmp_path):
+    """Test cleaning a directory containing read-only files"""
+    import os
+    import stat
+    
+    # Create a test directory with a read-only file
+    test_dir = tmp_path / "test_dir"
+    test_dir.mkdir()
+    test_file = test_dir / "readonly.txt"
+    test_file.write_text("test")
+    os.chmod(str(test_file), stat.S_IRUSR)
+    
+    cleaner = FileCleaner()
+    result = cleaner.clean_files([{'path': str(test_dir)}])
+    
+    assert not test_dir.exists()
+    assert len(result['cleaned']) == 1
+    assert len(result['failed']) == 0
+
+def test_clean_directory_nonexistent():
+    """Test cleaning a nonexistent directory"""
+    cleaner = FileCleaner()
+    result = cleaner.clean_files([{'path': '/nonexistent/dir'}])
+    
+    assert len(result['cleaned']) == 0
+    assert len(result['failed']) == 1
+    assert "No such file or directory" in result['failed'][0]['error']

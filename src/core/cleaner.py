@@ -3,35 +3,115 @@ from typing import List, Dict, Optional, Union, Any
 import logging
 import os
 import json
+import subprocess
 
 class FileCleaner:
-    """Cleaner for removing files"""
+    """Cleaner for removing files and directories"""
     
-    def __init__(self, backup_manager=None, history_manager=None):
-        self.backup_manager = backup_manager
-        self.history_manager = history_manager
+    def __init__(self, use_sudo: bool = False):
+        """Initialize FileCleaner
+        
+        Args:
+            use_sudo: Whether to use sudo for operations requiring elevated privileges
+        """
         self.logger = logging.getLogger(__name__)
+        self.use_sudo = use_sudo
     
-    def clean_files(self, files: List[Dict], backup: bool = False) -> Dict:
-        """Clean files with optional backup"""
+    def _remove_directory(self, path: str) -> None:
+        """Recursively remove a directory and its contents
+        
+        Args:
+            path: Path to directory to remove
+            
+        Raises:
+            OSError: If directory cannot be removed
+        """
+        import shutil
+        
+        try:
+            # First try to make all files writable
+            for root, dirs, files in os.walk(path):
+                for d in dirs:
+                    try:
+                        os.chmod(os.path.join(root, d), 0o755)
+                    except OSError:
+                        pass
+                for f in files:
+                    try:
+                        os.chmod(os.path.join(root, f), 0o644)
+                    except OSError:
+                        pass
+            
+            try:
+                # Try normal removal first
+                shutil.rmtree(path)
+            except PermissionError:
+                if self.use_sudo:
+                    # If normal removal fails and sudo is enabled, try with sudo
+                    result = subprocess.run(['sudo', 'rm', '-rf', path], 
+                                         capture_output=True, 
+                                         text=True)
+                    if result.returncode != 0:
+                        raise OSError(f"Operation not permitted: {result.stderr}")
+                else:
+                    raise OSError("Operation not permitted")
+            except Exception as e:
+                raise OSError(str(e))
+                
+        except Exception as e:
+            raise OSError(str(e))
+    
+    def clean_files(self, files: List[Dict]) -> Dict[str, List]:
+        """Clean files and directories
+        
+        Args:
+            files: List of dictionaries containing file information
+            
+        Returns:
+            Dictionary with 'cleaned' and 'failed' lists
+        """
         if not isinstance(files, list):
             raise ValueError("Files must be a list")
         
-        results = {'cleaned': [], 'failed': []}
+        results = {
+            'cleaned': [],
+            'failed': []
+        }
         
         for file_info in files:
+            path = file_info.get('path')
+            if not path:
+                continue
+                
             try:
-                file_path = Path(file_info['path'])
-                if not file_path.exists():
-                    results['failed'].append({**file_info, 'error': 'File does not exist'})
-                    continue
-                    
-                file_path.unlink()
-                results['cleaned'].append(file_info)
+                if not os.path.exists(path):
+                    raise FileNotFoundError("No such file or directory")
+                
+                if os.path.isdir(path):
+                    self._remove_directory(path)
+                else:
+                    try:
+                        os.remove(path)
+                    except PermissionError:
+                        if self.use_sudo:
+                            result = subprocess.run(['sudo', 'rm', path], 
+                                                 capture_output=True, 
+                                                 text=True)
+                            if result.returncode != 0:
+                                raise OSError(f"Operation not permitted: {result.stderr}")
+                        else:
+                            raise OSError("Operation not permitted")
+                
+                results['cleaned'].append(path)
+                self.logger.info(f"Successfully cleaned: {path}")
                 
             except Exception as e:
-                results['failed'].append({**file_info, 'error': str(e)})
-                
+                results['failed'].append({
+                    'path': path,
+                    'error': str(e)
+                })
+                self.logger.error(f"Failed to clean {path}: {e}")
+        
         return results
     
     def clean_by_pattern(self, directory: Union[str, Path], patterns: List[str]) -> Dict[str, List[Dict[str, Any]]]:
