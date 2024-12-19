@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Set
+from typing import List
 import os
 
 @dataclass
@@ -10,41 +10,32 @@ class ValidationResult:
     error_message: str = ""
     requires_sudo: bool = False
 
-class ValidationError(Exception):
-    """Raised when path validation fails"""
-    pass
-
 class PathValidator:
     """Validates paths for safe file operations"""
 
     def __init__(self, protected_paths: List[str]):
-        """Initialize validator with protected paths
-        
-        Args:
-            protected_paths: List of absolute paths that should not be modified
-        """
-        self.protected_paths = {Path(p).resolve() for p in protected_paths}
+        """Initialize validator with protected paths"""
+        if not isinstance(protected_paths, list):
+            raise TypeError("protected_paths must be a list")
+            
+        # Validate all paths are absolute
+        for path in protected_paths:
+            if not os.path.isabs(path):
+                raise ValueError(f"Protected path must be absolute: {path}")
+                
+        self.protected_paths = [Path(p) for p in protected_paths]
 
     def validate_paths(self, paths: List[Path]) -> List[ValidationResult]:
-        """Validate multiple paths
-        
-        Args:
-            paths: List of paths to validate
-            
-        Returns:
-            List of validation results for each path
-        """
+        """Validate multiple paths"""
+        if not paths:
+            return []
         return [self.validate_path(p) for p in paths]
 
     def validate_path(self, path: Path) -> ValidationResult:
-        """Validate a single path
-        
-        Args:
-            path: Path to validate
+        """Validate a single path"""
+        if path is None:
+            raise TypeError("Path cannot be None")
             
-        Returns:
-            ValidationResult indicating if path is safe to operate on
-        """
         try:
             # Check if path exists
             if not path.exists():
@@ -56,23 +47,15 @@ class PathValidator:
             # Resolve the real path (follow symlinks)
             real_path = path.resolve()
 
-            # Check for path traversal attempts
-            if '..' in str(real_path):
+            # Check if path is protected
+            if self.is_path_protected(real_path):
                 return ValidationResult(
                     is_valid=False,
-                    error_message="Path traversal detected"
+                    error_message=f"Protected system path: {real_path}"
                 )
 
-            # Check if path is in protected paths
-            for protected in self.protected_paths:
-                if str(real_path).startswith(str(protected)):
-                    return ValidationResult(
-                        is_valid=False,
-                        error_message=f"Protected system path: {protected}"
-                    )
-
             # Check if path requires elevated privileges
-            requires_sudo = path.stat().st_uid == 0
+            requires_sudo = os.stat(str(path)).st_uid == 0
 
             return ValidationResult(
                 is_valid=True,
@@ -88,18 +71,11 @@ class PathValidator:
         except Exception as e:
             return ValidationResult(
                 is_valid=False,
-                error_message=f"Validation error: {str(e)}"
+                error_message=str(e)
             )
 
     def is_path_protected(self, path: Path) -> bool:
-        """Check if path is protected
-        
-        Args:
-            path: Path to check
-            
-        Returns:
-            True if path is protected, False otherwise
-        """
+        """Check if path is protected"""
         try:
             real_path = path.resolve()
             return any(
@@ -108,4 +84,4 @@ class PathValidator:
             )
         except Exception:
             # If we can't resolve the path, consider it protected
-            return True 
+            return True
