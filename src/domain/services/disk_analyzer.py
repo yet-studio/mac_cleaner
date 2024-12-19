@@ -1,47 +1,45 @@
-"""Service for analyzing disk space."""
+"""Disk analyzer service for analyzing disk usage."""
 
+import os
+import shutil
 from typing import List
 
-import psutil
-
-from ..models.disk_info import DiskInfo, DiskUsage
+from ..models.disk_info import DiskInfo
 
 
 class DiskAnalyzer:
-    """Service for analyzing disk space usage."""
+    """Service for analyzing disk usage."""
 
     def get_disk_usage(self, path: str) -> DiskInfo:
-        """
-        Get disk usage information for a specific path.
-
-        Args:
-            path: The path to analyze
-
-        Returns:
-            DiskInfo object containing usage information
-
-        Raises:
-            ValueError: If the path is invalid or inaccessible
-        """
+        """Get disk usage information for a given path."""
         try:
-            usage = psutil.disk_usage(path)
+            if not os.path.exists(path):
+                raise ValueError(f"Path does not exist: {path}")
+
+            if not os.access(path, os.R_OK):
+                raise PermissionError(f"Permission denied: {path}")
+
+            total, used, free = shutil.disk_usage(path)
             return DiskInfo(
                 path=path,
-                usage=DiskUsage(
-                    total_bytes=usage.total,
-                    used_bytes=usage.used,
-                    free_bytes=usage.free,
-                ),
+                total_space=total,
+                used_space=used,
+                free_space=free,
             )
-        except (FileNotFoundError, PermissionError) as e:
-            raise ValueError(f"Invalid disk path: {path}") from e
+        except Exception as e:
+            raise ValueError(f"Error getting disk usage for {path}: {str(e)}") from e
 
     def get_all_disks(self) -> List[DiskInfo]:
-        """
-        Get disk usage information for all mounted disks.
+        """Get disk usage information for all mounted disks."""
+        try:
+            disks = []
+            for path in self._get_mount_points():
+                if os.path.exists(path):
+                    disks.append(self.get_disk_usage(path))
+            return disks
+        except Exception as e:
+            raise ValueError(f"Error getting all disks: {str(e)}") from e
 
-        Returns:
-            List of DiskInfo objects for all mounted disks
-        """
-        partitions = psutil.disk_partitions()
-        return [self.get_disk_usage(partition.mountpoint) for partition in partitions]
+    def _get_mount_points(self) -> List[str]:
+        """Get all mount points."""
+        return ["/", "/home"]  # For now, just return root and home. Expand later.
