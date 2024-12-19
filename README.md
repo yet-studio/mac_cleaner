@@ -1,99 +1,49 @@
 # Mac Cleaner
 
-A secure system cleaning utility for macOS with strong safety guarantees.
+A professional-grade system cleaning tool for macOS with a focus on safety, reliability, and user control.
 
-## Features
+## Project Status
+🚧 **Under Development** - Following strict TDD and clean architecture principles
 
-- ✅ Secure path validation
-- 🔒 Protected system paths
-- 🔍 Symlink resolution
-- ⚡ Batch operations support
-- 🛡️ Permission checking
-- 💾 Safe file operations
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/mac-cleaner.git
-cd mac-cleaner
-```
-
-2. Create and activate a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Unix/macOS
-```
-
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-## Usage
-
-### Basic Usage
-```bash
-python main.py
-```
-
-### With Root Privileges (for system directories)
-```bash
-sudo python main.py
-```
-
-The cleaner will:
-1. Scan your system for cleanable files
-2. Show potential space savings
-3. Ask for confirmation before cleaning
-4. Clean files with appropriate permissions
-5. Show a summary of cleaned and failed items
+## Features (Planned)
+- System analysis and monitoring
+- Safe cleaning operations
+- Full undo capability
+- Modern CLI interface
+- Comprehensive safety checks
 
 ## Development
+This project follows strict development practices:
+- Test-Driven Development (TDD)
+- 100% test coverage
+- Type safety
+- Clean architecture
+- Comprehensive documentation
 
-### Running Tests
+For detailed development guidelines, see:
+- [Development Framework](DEVELOPMENT_FRAMEWORK.md)
+- [Architecture](ARCHITECTURE.md)
+- [Progress](PROGRESS.md)
+
+## Getting Started
 ```bash
-pytest -v
+# Clone the repository
+git clone [repository-url]
+cd mac-cleaner
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+
+# Install dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest
 ```
-
-### Code Coverage
-```bash
-pytest --cov=src tests/
-```
-
-Current code coverage: 89%
-
-### Project Structure
-```
-mac-cleaner/
-├── src/
-│   ├── core/          # Core cleaning functionality
-│   ├── database/      # Database operations
-│   ├── history/       # Cleaning history
-│   ├── ui/           # User interface
-│   ├── undo/         # Backup/restore
-│   └── utils/        # Utility functions
-├── tests/            # Test suite
-└── main.py          # Main entry point
-```
-
-## Recent Updates (2024-12-19)
-
-- Enhanced permission handling with better sudo detection
-- Improved error messages for inaccessible directories
-- Added accurate size calculation for cleaned files
-- Implemented TDD approach for feature development
-- Enhanced test coverage for permission-related scenarios
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Write tests first (TDD)
-4. Implement your changes
-5. Run tests and ensure coverage
-6. Submit a Pull Request
 
 ## License
-
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Disclaimer
+This tool is for educational purposes. Always backup your system before using cleaning tools.

@@ -22,8 +22,8 @@ wheels/
 
 # Virtual Environment
 venv/
-ENV/
 env/
+ENV/
 
 # IDE
 .idea/
@@ -31,12 +31,27 @@ env/
 *.swp
 *.swo
 
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Project specific
+logs/
+*.log
+.env
+config.local.yaml
+
 # Mac
 .DS_Store
 
-# Application specific
-logs/*
-!logs/.gitkeep
-backups/*
-!backups/.gitkeep
-*.log
+# Documentation
+docs/_build/
+site/
+
+# Temp files
+*.tmp
+*.bak
+*.swp
+*~
