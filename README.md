@@ -35,19 +35,19 @@ A professional-grade system cleaning tool for macOS with a focus on privacy, saf
 Our documentation is organized into three main areas:
 
 ### 1. Architecture (`docs/architecture/`)
-- [System Overview](docs/architecture/README.md)
+- [System Overview](docs/architecture.md)
 - [Architecture Decisions](docs/architecture/decisions/)
 - [Component Documentation](docs/architecture/components/)
 - [System Diagrams](docs/architecture/diagrams/)
 
 ### 2. Development (`docs/development/`)
-- [Contributing Guide](docs/development/CONTRIBUTING.md)
-- [Development Framework](DEVELOPMENT_FRAMEWORK.md)
+- [Contributing Guide](docs/README.md)
+- [Development Framework](docs/development.md)
 - [Style Guide](docs/development/STYLE.md)
 
 ### 3. Project (`docs/project/`)
 - [Project Charter](docs/project/PROJECT_CHARTER.md)
-- [Progress Tracking](PROGRESS.md)
+- [Progress Tracking](docs/project.md)
 - [Changelog](docs/project/CHANGELOG.md)
 
 ## Getting Started
@@ -68,10 +68,10 @@ pytest
 ```
 
 ## Development Process
-1. Check [PROGRESS.md](PROGRESS.md) for current sprint and available tasks
-2. Follow guidelines in [DEVELOPMENT_FRAMEWORK.md](DEVELOPMENT_FRAMEWORK.md)
-3. Read [Contributing Guide](docs/development/CONTRIBUTING.md) for workflow
-4. Review [Architecture](docs/architecture/README.md) for system design
+1. Check `docs/project.md` for current sprint and available tasks
+2. Follow guidelines in `docs/development.md`
+3. Read `docs/README.md` for workflow
+4. Review `docs/architecture.md` for system design
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
