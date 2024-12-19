@@ -158,3 +158,73 @@ class TestMemoryAnalyzer:
         assert top_processes[0].pid == mock_process_info["pid"]
         assert top_processes[0].name == mock_process_info["name"]
         assert top_processes[0].memory_percent == mock_process_info["memory_percent"]
+
+
+def test_memory_info_model():
+    """Test memory info model."""
+    memory_info = MemoryInfo(
+        total_bytes=16000, available_bytes=8000, used_bytes=8000, used_percent=50.0
+    )
+    assert memory_info.total_bytes == 16000
+    assert memory_info.used_bytes == 8000
+    assert memory_info.available_bytes == 8000
+
+
+def test_process_memory_info_model():
+    """Test process memory info model."""
+    process_info = ProcessMemoryInfo(
+        pid=1234,
+        name="test",
+        memory_percent=5.0,
+        cpu_percent=2.0,
+        rss_bytes=1000,
+        vms_bytes=2000,
+    )
+    assert process_info.pid == 1234
+    assert process_info.name == "test"
+    assert process_info.memory_percent == 5.0
+
+
+def test_get_memory_usage():
+    """Test get memory usage."""
+    analyzer = MemoryAnalyzer()
+    info = analyzer.get_memory_usage()
+    assert isinstance(info, MemoryInfo)
+    assert info.total_bytes > 0
+    assert info.used_bytes > 0
+    assert info.available_bytes >= 0
+
+
+def test_get_process_memory():
+    """Test get process memory."""
+    analyzer = MemoryAnalyzer()
+    current_pid = psutil.Process().pid
+    info = analyzer.get_process_memory(current_pid)
+    assert isinstance(info, ProcessMemoryInfo)
+    assert info.pid == current_pid
+    assert info.memory_percent >= 0
+
+
+def test_invalid_process_id():
+    """Test invalid process ID."""
+    analyzer = MemoryAnalyzer()
+    with pytest.raises(ValueError):
+        analyzer.get_process_memory(999999999)
+
+
+def test_get_top_memory_processes():
+    """Test get top memory processes."""
+    analyzer = MemoryAnalyzer()
+    processes = analyzer.get_top_memory_processes(limit=5)
+    assert isinstance(processes, list)
+    assert len(processes) <= 5
+    for proc in processes:
+        assert isinstance(proc, ProcessMemoryInfo)
+
+
+def test_get_top_memory_processes_with_errors():
+    """Test get top memory processes with errors."""
+    analyzer = MemoryAnalyzer()
+    processes = analyzer.get_top_memory_processes(limit=0)
+    assert isinstance(processes, list)
+    assert len(processes) == 0

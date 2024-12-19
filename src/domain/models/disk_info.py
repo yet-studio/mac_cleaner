@@ -1,25 +1,20 @@
-"""Models for disk information."""
+"""Disk information models."""
 
-from pydantic import BaseModel, computed_field
+from dataclasses import dataclass
 
 
-class DiskUsage(BaseModel):
-    """Represents disk usage information."""
+@dataclass
+class DiskInfo:
+    """Information about disk usage."""
 
-    total_bytes: int
-    used_bytes: int
-    free_bytes: int
+    path: str
+    total_space: int
+    used_space: int
+    free_space: int
 
-    @computed_field
+    @property
     def used_percentage(self) -> float:
         """Calculate the percentage of disk space used."""
         return (
-            (self.used_bytes / self.total_bytes) * 100 if self.total_bytes > 0 else 0.0
+            (self.used_space / self.total_space) * 100 if self.total_space > 0 else 0.0
         )
-
-
-class DiskInfo(BaseModel):
-    """Represents information about a disk."""
-
-    path: str
-    usage: DiskUsage
