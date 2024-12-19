@@ -1,16 +1,15 @@
 # Mac Cleaner
 
-A powerful system cleaning tool for macOS that helps you manage and clean system directories efficiently.
+A secure system cleaning utility for macOS with strong safety guarantees.
 
 ## Features
 
-- Clean system directories and temporary files
-- Calculate potential space savings before cleaning
-- Smart permission handling with sudo support
-- Multiple cleaning categories (cache, logs, etc.)
-- Size estimation and preview before cleaning
-- Fast and efficient cleaning operations
-- Undo/backup capability for safe cleaning
+- ✅ Secure path validation
+- 🔒 Protected system paths
+- 🔍 Symlink resolution
+- ⚡ Batch operations support
+- 🛡️ Permission checking
+- 💾 Safe file operations
 
 ## Installation
 
