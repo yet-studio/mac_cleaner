@@ -1,23 +1,23 @@
 {
     "cleanup_paths": {
         "cache": [
-            "/Users/popdev/Library/Caches",
+            "/Users/${USER}/Library/Caches",
             "/Library/Caches"
         ],
         "containers": [
-            "/Users/popdev/Library/Containers"
+            "/Users/${USER}/Library/Containers"
         ],
         "application_state": [
-            "/Users/popdev/Library/Saved Application State"
+            "/Users/${USER}/Library/Saved Application State"
         ],
         "temp": [
             "/private/tmp"
         ],
         "logs": [
-            "/Users/popdev/Library/Logs",
+            "/Users/${USER}/Library/Logs",
             "/usr/local/var/log",
             "/private/var/log",
-            "/Users/popdev/Library/Logs",
+            "/Users/${USER}/Library/Logs",
             "/private/var/logs"
         ]
     },
