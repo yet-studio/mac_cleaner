@@ -5,8 +5,20 @@ A professional-grade system cleaning tool for macOS with a focus on safety, reli
 ## Project Status
 🚧 **Under Development** - Following strict TDD and clean architecture principles
 
-## Features (Planned)
-- System analysis and monitoring
+## Features
+### Implemented 
+- Disk Space Analysis
+  - Detailed disk usage information
+  - Multiple disk support
+  - Path-specific analysis
+- Memory Usage Monitoring
+  - System memory analysis
+  - Process-level memory tracking
+  - Top memory consumers identification
+  - Error handling for invalid processes
+
+### Coming Soon 
+- System health checks
 - Safe cleaning operations
 - Full undo capability
 - Modern CLI interface
